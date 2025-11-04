@@ -112,11 +112,17 @@ def aes_encrypt(message: str, password: str) -> bytes:
     key = derive_key(password, salt)
     iv = os.urandom(16)
     msg_bytes = message.encode()
-    padding_length = 16 - (len(msg_bytes) % 16)
-    msg_bytes += bytes([padding_length]) * padding_length
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(msg_bytes) + encryptor.finalize()
+    from cryptography.hazmat.primitives import padding
+
+# Apply PKCS7 padding
+padder = padding.PKCS7(128).padder()   # 128 bits = 16 bytes (AES block size)
+padded_data = padder.update(msg_bytes) + padder.finalize()
+
+# Encrypt
+cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+encryptor = cipher.encryptor()
+ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+
     return salt + iv + ciphertext
 
 def aes_decrypt(encrypted: bytes, password: str) -> str:
@@ -124,9 +130,14 @@ def aes_decrypt(encrypted: bytes, password: str) -> str:
     key = derive_key(password, salt)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
     decryptor = cipher.decryptor()
-    msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
-    padding_length = msg_padded[-1]
-    return msg_padded[:-padding_length].decode()
+    from cryptography.hazmat.primitives import padding
+
+msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
+
+# Remove PKCS7 padding securely
+unpadder = padding.PKCS7(128).unpadder()
+unpadded_data = unpadder.update(msg_padded) + unpadder.finalize()
+return unpadded_data.decode()
 
 # -----------------------------------------------------------
 #  Main Program
