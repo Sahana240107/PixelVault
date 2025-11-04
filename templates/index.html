@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelVault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="logo-container">
+        <img src="{{ url_for('static', filename='pixelvault-logo.png') }}" class="logo" alt="PixelVault Logo">
+        <div class="title">PixelVault</div>
+        <div class="subtitle">Secure Your Secrets in Pixels</div>
+    </div>
+
+    <div class="grid-container">
+        <a href="{{ url_for('encrypt_page') }}">
+            <div class="grid-item"><h2>Encrypt</h2></div>
+        </a>
+        <a href="{{ url_for('decrypt_page') }}">
+            <div class="grid-item"><h2>Decrypt</h2></div>
+        </a>
+    </div>
+</body>
+</html>

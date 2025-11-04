@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decrypt - PixelVault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="title-page">Decrypt Your Message</div>
+    <div class="form-container">
+        <form action="{{ url_for('decrypt_route') }}" method="POST" enctype="multipart/form-data">
+            <label for="file">Select Stego Image:</label>
+            <input type="file" name="image" id="file" required>
+
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" required>
+
+            <button type="submit">Decrypt</button>
+        </form>
+        <a href="{{ url_for('home') }}" class="back">← Back to Home</a>
+    </div>
+</body>
+</html>
