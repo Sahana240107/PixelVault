@@ -20,4 +20,5 @@ COPY . .
 EXPOSE 5000
 
 # Run the app with gunicorn (better for production than flask dev server)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--timeout", "120", "--workers", "1"]
+
