@@ -114,14 +114,14 @@ def aes_encrypt(message: str, password: str) -> bytes:
     msg_bytes = message.encode()
     from cryptography.hazmat.primitives import padding
 
-# Apply PKCS7 padding
-padder = padding.PKCS7(128).padder()   # 128 bits = 16 bytes (AES block size)
-padded_data = padder.update(msg_bytes) + padder.finalize()
+    # Apply PKCS7 padding
+    padder = padding.PKCS7(128).padder()   # 128 bits = 16 bytes (AES block size)
+    padded_data = padder.update(msg_bytes) + padder.finalize()
 
-# Encrypt
-cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-encryptor = cipher.encryptor()
-ciphertext = encryptor.update(padded_data) + encryptor.finalize()
+    # Encrypt
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
     return salt + iv + ciphertext
 
@@ -132,12 +132,12 @@ def aes_decrypt(encrypted: bytes, password: str) -> str:
     decryptor = cipher.decryptor()
     from cryptography.hazmat.primitives import padding
 
-msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
+    msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
 
-# Remove PKCS7 padding securely
-unpadder = padding.PKCS7(128).unpadder()
-unpadded_data = unpadder.update(msg_padded) + unpadder.finalize()
-return unpadded_data.decode()
+    # Remove PKCS7 padding securely
+    unpadder = padding.PKCS7(128).unpadder()
+    unpadded_data = unpadder.update(msg_padded) + unpadder.finalize()
+    return unpadded_data.decode()
 
 # -----------------------------------------------------------
 #  Main Program
