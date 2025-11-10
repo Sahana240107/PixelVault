@@ -139,7 +139,7 @@ a { text-decoration: none; }
     border: none;
     outline: none;
     background: rgba(200,200,200,0.1);
-    color: #c1c1c1;
+    color: #e0e0e0;
     font-size: 1rem;
 }
 
@@ -151,7 +151,7 @@ a { text-decoration: none; }
     font-size: 1.1rem;
     font-weight: bold;
     background: linear-gradient(45deg, #575757, #878787);
-    color: #c1c1c1;
+    color: #e0e0e0;
     cursor: pointer;
     box-shadow: 0 0 20px #878787, 0 0 40px #575757;
     transition: all 0.3s ease;
