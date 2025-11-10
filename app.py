@@ -3,11 +3,16 @@ from io import BytesIO
 from PIL import Image
 import traceback
 
-# import your existing functions
+# Import encryption/decryption functions
 from encrypt import aes_encrypt
 from decrypt import aes_decrypt
 
 app = Flask(__name__)
+
+# ------------------- CONSTANTS -------------------
+ENCRYPT_TEMPLATE = 'encrypt.html'
+DECRYPT_TEMPLATE = 'decrypt.html'
+MSG_START_TAG = '[MSG_START]'
 
 # ------------------- HOME -------------------
 @app.route('/')
@@ -18,7 +23,7 @@ def home():
 # ------------------- ENCRYPT -------------------
 @app.route('/encrypt', methods=['GET'])
 def encrypt_page():
-    return render_template('encrypt.html')
+    return render_template(ENCRYPT_TEMPLATE)
 
 
 @app.route('/encrypt', methods=['POST'])
@@ -29,13 +34,13 @@ def encrypt_route():
         password = request.form.get('password', '')
 
         if not image_file or not message or not password:
-            return render_template('encrypt.html', error="Missing image, message, or password.")
+            return render_template(ENCRYPT_TEMPLATE, error="Missing image, message, or password.")
 
         img = Image.open(image_file.stream)
         if img.mode != "RGB":
             img = img.convert("RGB")
 
-        secure_message = "[MSG_START]" + message
+        secure_message = MSG_START_TAG + message
         encrypted_bytes = aes_encrypt(secure_message, password)
         encrypted_hex = encrypted_bytes.hex()
 
@@ -51,7 +56,7 @@ def encrypt_route():
         all_bits = header_bits + msg_bits
 
         if len(all_bits) > capacity_bits:
-            return render_template('encrypt.html', error="Message too large for image!")
+            return render_template(ENCRYPT_TEMPLATE, error="Message too large for image!")
 
         bit_idx = 0
         new_pixels = []
@@ -83,13 +88,13 @@ def encrypt_route():
 
     except Exception as e:
         print("Encryption error:", traceback.format_exc())
-        return render_template('encrypt.html', error=f"Encryption error: {e}")
+        return render_template(ENCRYPT_TEMPLATE, error=f"Encryption error: {e}")
 
 
 # ------------------- DECRYPT -------------------
 @app.route('/decrypt', methods=['GET'])
 def decrypt_page():
-    return render_template('decrypt.html')
+    return render_template(DECRYPT_TEMPLATE)
 
 
 @app.route('/decrypt', methods=['POST'])
@@ -99,7 +104,7 @@ def decrypt_route():
         password = request.form.get('password', '')
 
         if not image_file or not password:
-            return render_template('decrypt.html', error="Please upload an image and enter password.")
+            return render_template(DECRYPT_TEMPLATE, error="Please upload an image and enter password.")
 
         img = Image.open(image_file.stream)
         if img.mode != "RGB":
@@ -130,18 +135,19 @@ def decrypt_route():
         try:
             message = aes_decrypt(encrypted_bytes, password)
         except Exception:
-            return render_template('decrypt.html', error="Incorrect password or corrupted image.")
+            return render_template(DECRYPT_TEMPLATE, error="Incorrect password or corrupted image.")
 
-        if not message.startswith("[MSG_START]"):
-            return render_template('decrypt.html', error="Incorrect password or corrupted image.")
+        if not message.startswith(MSG_START_TAG):
+            return render_template(DECRYPT_TEMPLATE, error="Incorrect password or corrupted image.")
 
-        clean_message = message.replace("[MSG_START]", "", 1)
-        return render_template('decrypt.html', message=clean_message)
+        clean_message = message.replace(MSG_START_TAG, "", 1)
+        return render_template(DECRYPT_TEMPLATE, message=clean_message)
 
     except Exception as e:
         print("Decryption error:", traceback.format_exc())
-        return render_template('decrypt.html', error=f"Decryption failed: {e}")
+        return render_template(DECRYPT_TEMPLATE, error=f"Decryption failed: {e}")
 
 
+# ------------------- RUN APP -------------------
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
