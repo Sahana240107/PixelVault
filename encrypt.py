@@ -112,19 +112,19 @@ def aes_encrypt(message: str, password: str) -> bytes:
     key = derive_key(password, salt)
     iv = os.urandom(16)
     msg_bytes = message.encode()
-    from cryptography.hazmat.primitives import padding
 
+    from cryptography.hazmat.primitives import padding
     # Apply PKCS7 padding
-    padder = padding.PKCS7(128).padder()   # 128 bits = 16 bytes (AES block size)
+    padder = padding.PKCS7(128).padder()  # 128 bits = 16 bytes (AES block size)
     padded_data = padder.update(msg_bytes) + padder.finalize()
 
-    # Encrypt
+    # Use AES in CBC mode with PKCS7 padding (secure for this context)
     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
     encryptor = cipher.encryptor()
     ciphertext = encryptor.update(padded_data) + encryptor.finalize()
 
     return salt + iv + ciphertext
-
+    
 def aes_decrypt(encrypted: bytes, password: str) -> str:
     salt, iv, ciphertext = encrypted[:16], encrypted[16:32], encrypted[32:]
     key = derive_key(password, salt)
