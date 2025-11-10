@@ -19,6 +19,18 @@
 
             <button type="submit">Decrypt</button>
         </form>
+
+        {% if message %}
+            <div style="margin-top:20px; padding:15px; background:rgba(255,255,255,0.05); border-radius:10px; border:1px solid #878787; color:#c1c1c1;">
+                <strong>Decrypted Message:</strong>
+                <p style="margin-top:10px;">{{ message }}</p>
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <p style="margin-top:20px; color:#ff5555;">{{ error }}</p>
+        {% endif %}
+
         <a href="{{ url_for('home') }}" class="back">← Back to Home</a>
     </div>
 </body>
