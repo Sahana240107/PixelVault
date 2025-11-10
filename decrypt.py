@@ -1,18 +1,19 @@
 # -----------------------------------------------------------
-#  Decrypt Stego Image (AES + LSB)
+#  Decrypt Stego Image (AES-GCM + LSB)
 # -----------------------------------------------------------
 
 import logging
 from PIL import Image
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.hazmat.primitives import hashes, padding
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from base64 import b64decode
+from Cryptodome.Cipher import AES
+from Cryptodome.Protocol.KDF import PBKDF2
+from Cryptodome.Hash import SHA256
 
 logging.basicConfig(level=logging.INFO)
 
 SALT_SIZE = 16
-IV_SIZE = 16
+NONCE_SIZE = 12  # Recommended size for GCM
+TAG_SIZE = 16
 
 # -----------------------------------------------------------
 #  Helper Functions
@@ -34,44 +35,39 @@ def extract_message_lsb(stego_image_path):
     img = Image.open(stego_image_path).convert("RGB")
     pixels = list(img.getdata())
     bits = [bit & 1 for pixel in pixels for bit in pixel]
+
     msg_len = int(''.join(map(str, bits[:32])), 2)
     msg_bits = bits[32:32 + msg_len * 8]
     msg_bytes = _bits_to_bytes(msg_bits)
     return msg_bytes
 
 # -----------------------------------------------------------
-#  AES Decryption
+#  AES-GCM Decryption (Secure Mode)
 # -----------------------------------------------------------
 def derive_key(password: str, salt: bytes) -> bytes:
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=salt,
-        iterations=100_000,
-        backend=default_backend()
-    )
-    return kdf.derive(password.encode())
+    """Derives a 256-bit AES key using PBKDF2-HMAC-SHA256."""
+    return PBKDF2(password, salt, dkLen=32, count=100_000, hmac_hash_module=SHA256)
 
 def aes_decrypt(encrypted: bytes, password: str) -> str:
+    """
+    Expected layout of encrypted data:
+    [salt (16 bytes)] + [nonce (12 bytes)] + [ciphertext (...)] + [tag (16 bytes)]
+    """
     salt = encrypted[:SALT_SIZE]
-    iv = encrypted[SALT_SIZE:SALT_SIZE+IV_SIZE]
-    ciphertext = encrypted[SALT_SIZE+IV_SIZE:]
+    nonce = encrypted[SALT_SIZE:SALT_SIZE + NONCE_SIZE]
+    tag = encrypted[-TAG_SIZE:]
+    ciphertext = encrypted[SALT_SIZE + NONCE_SIZE:-TAG_SIZE]
 
     key = derive_key(password, salt)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
-
-    unpadder = padding.PKCS7(128).unpadder()
-    msg = unpadder.update(msg_padded) + unpadder.finalize()
-
-    return msg.decode()
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    decrypted = cipher.decrypt_and_verify(ciphertext, tag)
+    return decrypted.decode('utf-8')
 
 # -----------------------------------------------------------
 #  Main Program
 # -----------------------------------------------------------
 if __name__ == "__main__":
-    logging.info("=== Decrypt Stego Image ===")
+    logging.info("=== Decrypt Stego Image (AES-GCM) ===")
     stego_image_path = input("Enter the path of the stego image: ")
     password = input("Enter the password used to encrypt the message: ")
 
@@ -79,7 +75,9 @@ if __name__ == "__main__":
         extracted_bytes = extract_message_lsb(stego_image_path)
         extracted_hex = extracted_bytes.decode('utf-8')
         encrypted_bytes = bytes.fromhex(extracted_hex)
+
         decrypted_message = aes_decrypt(encrypted_bytes, password)
-        print("\nDecrypted message:\n", decrypted_message)
+        print("\n✅ Decrypted message:\n", decrypted_message)
+
     except Exception as e:
-        logging.error("Decryption failed. Check your password or stego image. Details: %s", e)
+        logging.error("❌ Decryption failed. Check password or image integrity. Details: %s", e)
