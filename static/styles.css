@@ -1,35 +1,30 @@
 /* ===== Global Styles ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 body {
     font-family: 'Roboto', sans-serif;
-    background: radial-gradient(circle at top left, #1a1a1a, #050505);
+    background: radial-gradient(circle at top left, #2c2c2c, #050505);
     color: #c1c1c1;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow-x: hidden;
 }
 
 /* ===== Logo & Title (Home) ===== */
 .logo-container {
     text-align: center;
-    margin: 80px 0 60px;
-    animation: fadeIn 1.5s ease-in;
+    margin: 60px 0;
 }
-
 .logo {
-    width: 130px;
-    height: 130px;
+    width: 120px;
+    height: 120px;
     object-fit: contain;
     display: block;
     margin: 0 auto;
-    border-radius: 25px;
-    background: rgba(255,255,255,0.05);
-    box-shadow: 0 0 20px #575757, 0 0 50px #878787;
+    box-shadow: 0 0 20px #575757, 0 0 40px #878787;
+    background-color: #050505;
+    border-radius: 20px;
     padding: 10px;
-    animation: pulse 3s infinite ease-in-out;
 }
 
 .title {
@@ -39,7 +34,7 @@ body {
     background: linear-gradient(90deg, #575757, #878787, #c1c1c1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-top: 25px;
+    margin-top: 20px;
     text-shadow: 0 0 10px #575757, 0 0 20px #878787;
 }
 
@@ -47,7 +42,6 @@ body {
     font-size: 1.2rem;
     margin-top: 10px;
     color: #c1c1c1;
-    opacity: 0.8;
 }
 
 /* ===== Grid Buttons (Home) ===== */
@@ -57,8 +51,7 @@ body {
     gap: 30px;
     width: 80%;
     max-width: 800px;
-    margin-bottom: 80px;
-    animation: fadeInUp 1.2s ease-in-out;
+    margin-bottom: 60px;
 }
 
 .grid-item {
@@ -109,24 +102,79 @@ body {
 
 a { text-decoration: none; }
 
-/* ===== Animation Effects ===== */
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 0 20px #575757, 0 0 50px #878787; }
-    50% { box-shadow: 0 0 40px #878787, 0 0 80px #c1c1c1; }
+/* ===== Pages (Encrypt / Decrypt) ===== */
+.title-page {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.5rem;
+    background: linear-gradient(90deg, #575757, #878787, #c1c1c1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 60px 0 40px;
+    text-shadow: 0 0 10px #575757, 0 0 20px #878787;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+.form-container {
+    background: rgba(200,200,200,0.05);
+    border: 2px solid #878787;
+    border-radius: 20px;
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 0 20px #87878733, 0 0 40px #57575733;
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+.form-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
 }
+
+.form-container input[type="file"],
+.form-container input[type="text"],
+.form-container input[type="password"] {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background: rgba(200,200,200,0.1);
+    color: #c1c1c1;
+    font-size: 1rem;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: linear-gradient(45deg, #575757, #878787);
+    color: #c1c1c1;
+    cursor: pointer;
+    box-shadow: 0 0 20px #878787, 0 0 40px #575757;
+    transition: all 0.3s ease;
+}
+
+.form-container button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 30px #878787, 0 0 60px #575757;
+}
+
+a.back {
+    display: inline-block;
+    margin-top: 20px;
+    color: #878787;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a.back:hover { text-decoration: underline; }
 
 /* ===== Responsive ===== */
 @media(max-width: 600px) {
     .title { font-size: 2.2rem; }
+    .title-page { font-size: 2rem; }
     .grid-item { padding: 40px 15px; }
 }
