@@ -5,9 +5,9 @@
 import logging
 from PIL import Image
 from base64 import b64decode
-from Cryptodome.Cipher import AES
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Hash import SHA256
+from Crypto.Cipher import AES
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import SHA256
 
 logging.basicConfig(level=logging.INFO)
 
