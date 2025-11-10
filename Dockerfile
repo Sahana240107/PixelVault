@@ -16,10 +16,7 @@ WORKDIR /app
 COPY . /app
 
 # Install dependencies safely
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Change ownership to non-root user
-RUN chown -R appuser:appuser /app
+RUN pip install --no-cache-dir -r requirements.txt && chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
