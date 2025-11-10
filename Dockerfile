@@ -1,33 +1,29 @@
+# -----------------------------------------------------
+# Secure Dockerfile for PixelVault
+# -----------------------------------------------------
 FROM python:3.11-slim
 
 # Prevent Python from buffering stdout/stderr
 ENV PYTHONUNBUFFERED=1
 
-# ==========================
-#  STEP 2: Set Working Directory
-# ==========================
+# Create a non-root user and switch to it
+RUN adduser --disabled-password --gecos "" appuser
+
+# Set working directory
 WORKDIR /app
 
-# ==========================
-#  STEP 3: Copy Files
-# ==========================
-COPY . .
+# Copy project files
+COPY . /app
 
-# ==========================
-#  STEP 4: Install Dependencies
-# ==========================
-# Combine all RUN instructions to reduce image layers
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libjpeg-dev zlib1g-dev && \
-    pip install --no-cache-dir flask pillow && \
-    rm -rf /var/lib/apt/lists/*
+# Install dependencies safely
+RUN pip install --no-cache-dir -r requirements.txt
 
-# ==========================
-#  STEP 5: Expose Port
-# ==========================
+# Change ownership to non-root user
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port and run Flask app
 EXPOSE 5000
-
-# ==========================
-#  STEP 6: Run the App
-# ==========================
 CMD ["python", "app.py"]
