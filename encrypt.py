@@ -7,6 +7,8 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
 import os
 
 # -----------------------------------------------------------
@@ -110,34 +112,18 @@ def derive_key(password: str, salt: bytes) -> bytes:
 def aes_encrypt(message: str, password: str) -> bytes:
     salt = os.urandom(16)
     key = derive_key(password, salt)
-    iv = os.urandom(16)
-    msg_bytes = message.encode()
-
-    from cryptography.hazmat.primitives import padding
-    # Apply PKCS7 padding
-    padder = padding.PKCS7(128).padder()  # 128 bits = 16 bytes (AES block size)
-    padded_data = padder.update(msg_bytes) + padder.finalize()
-
-    # Use AES in CBC mode with PKCS7 padding (secure for this context)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(padded_data) + encryptor.finalize()
-
+    iv = os.urandom(12)  # 96-bit nonce is recommended for GCM
+    aesgcm = AESGCM(key)
+    ciphertext = aesgcm.encrypt(iv, message.encode(), None)
     return salt + iv + ciphertext
-    
+
+
 def aes_decrypt(encrypted: bytes, password: str) -> str:
-    salt, iv, ciphertext = encrypted[:16], encrypted[16:32], encrypted[32:]
+    salt, iv, ciphertext = encrypted[:16], encrypted[16:28], encrypted[28:]
     key = derive_key(password, salt)
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    decryptor = cipher.decryptor()
-    from cryptography.hazmat.primitives import padding
-
-    msg_padded = decryptor.update(ciphertext) + decryptor.finalize()
-
-    # Remove PKCS7 padding securely
-    unpadder = padding.PKCS7(128).unpadder()
-    unpadded_data = unpadder.update(msg_padded) + unpadder.finalize()
-    return unpadded_data.decode()
+    aesgcm = AESGCM(key)
+    decrypted = aesgcm.decrypt(iv, ciphertext, None)
+    return decrypted.decode()
 
 # -----------------------------------------------------------
 #  Main Program
