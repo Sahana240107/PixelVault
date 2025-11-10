@@ -1,24 +1,37 @@
-# Use official Python slim image
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Set working directory
+# Prevent Python from buffering stdout/stderr
+ENV PYTHONUNBUFFERED=1
+
+# ==========================
+#  STEP 2: Set Working Directory
+# ==========================
 WORKDIR /app
 
-# Install system dependencies needed by Pillow (image libs)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libjpeg62-turbo-dev libpng-dev build-essential && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy app source
+# ==========================
+#  STEP 3: Copy Files
+# ==========================
 COPY . .
 
-# Expose port 5000
+# ==========================
+#  STEP 4: Install Dependencies
+# ==========================
+# Install Pillow dependencies (image libraries)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libjpeg-dev zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# If you have a requirements.txt, use it:
+# RUN pip install --no-cache-dir -r requirements.txt
+# Otherwise, install Flask + Pillow manually:
+RUN pip install --no-cache-dir flask pillow
+
+# ==========================
+#  STEP 5: Expose Port
+# ==========================
 EXPOSE 5000
 
-# Run the app with gunicorn (better for production than flask dev server)
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--timeout", "120", "--workers", "1"]
-
+# ==========================
+#  STEP 6: Run the App
+# ==========================
+CMD ["python", "app.py"]
