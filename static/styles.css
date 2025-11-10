@@ -138,7 +138,7 @@ a { text-decoration: none; }
     border-radius: 10px;
     border: none;
     outline: none;
-    background: rgba(200,200,200,0.1);
+    background: #595959;
     color: #ffffff;
     font-size: 1rem;
 }
