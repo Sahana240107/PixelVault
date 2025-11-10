@@ -1,11 +1,11 @@
-from flask import Flask, request, send_file, jsonify, render_template
+from flask import Flask, request, send_file, render_template
 from io import BytesIO
 from PIL import Image
 import traceback
 
 # import your existing functions
-from encrypt import aes_encrypt, embed_message_lsb
-from decrypt import aes_decrypt, extract_message_lsb
+from encrypt import aes_encrypt
+from decrypt import aes_decrypt
 
 app = Flask(__name__)
 
@@ -16,12 +16,11 @@ def home():
 
 
 # ------------------- ENCRYPT -------------------
-# GET → show form
 @app.route('/encrypt', methods=['GET'])
 def encrypt_page():
     return render_template('encrypt.html')
 
-# POST → process encryption
+
 @app.route('/encrypt', methods=['POST'])
 def encrypt_route():
     try:
@@ -30,18 +29,16 @@ def encrypt_route():
         password = request.form.get('password', '')
 
         if not image_file or not message or not password:
-            return "Missing image, message, or password.", 400
+            return render_template('encrypt.html', error="Missing image, message, or password.")
 
         img = Image.open(image_file.stream)
         if img.mode != "RGB":
             img = img.convert("RGB")
 
-        # Encrypt the message with marker
         secure_message = "[MSG_START]" + message
         encrypted_bytes = aes_encrypt(secure_message, password)
         encrypted_hex = encrypted_bytes.hex()
 
-        # Embed into image
         pixels = list(img.getdata())
         width, height = img.size
         capacity_bits = len(pixels) * 3
@@ -54,7 +51,7 @@ def encrypt_route():
         all_bits = header_bits + msg_bits
 
         if len(all_bits) > capacity_bits:
-            return "Message too large for image!", 400
+            return render_template('encrypt.html', error="Message too large for image!")
 
         bit_idx = 0
         new_pixels = []
@@ -73,7 +70,6 @@ def encrypt_route():
         stego_img = Image.new("RGB", (width, height))
         stego_img.putdata(new_pixels)
 
-        # Send image as download
         output_stream = BytesIO()
         stego_img.save(output_stream, format='PNG')
         output_stream.seek(0)
@@ -87,16 +83,15 @@ def encrypt_route():
 
     except Exception as e:
         print("Encryption error:", traceback.format_exc())
-        return f"Encryption error: {e}", 500
+        return render_template('encrypt.html', error=f"Encryption error: {e}")
 
 
 # ------------------- DECRYPT -------------------
-# GET → show form
 @app.route('/decrypt', methods=['GET'])
 def decrypt_page():
     return render_template('decrypt.html')
 
-# POST → process decryption
+
 @app.route('/decrypt', methods=['POST'])
 def decrypt_route():
     try:
@@ -104,13 +99,13 @@ def decrypt_route():
         password = request.form.get('password', '')
 
         if not image_file or not password:
-            return jsonify({"error": "Missing image or password."}), 400
+            return render_template('decrypt.html', error="Please upload an image and enter password.")
 
         img = Image.open(image_file.stream)
         if img.mode != "RGB":
             img = img.convert("RGB")
 
-        # Extract LSB bits
+        # Extract bits from image
         pixels = list(img.getdata())
         bits = []
         for r, g, b in pixels:
@@ -135,17 +130,17 @@ def decrypt_route():
         try:
             message = aes_decrypt(encrypted_bytes, password)
         except Exception:
-            return jsonify({"error": "Incorrect password or corrupted image."}), 401
+            return render_template('decrypt.html', error="Incorrect password or corrupted image.")
 
         if not message.startswith("[MSG_START]"):
-            return jsonify({"error": "Incorrect password or corrupted image."}), 401
+            return render_template('decrypt.html', error="Incorrect password or corrupted image.")
 
         clean_message = message.replace("[MSG_START]", "", 1)
-        return jsonify({"message": clean_message})
+        return render_template('decrypt.html', message=clean_message)
 
     except Exception as e:
         print("Decryption error:", traceback.format_exc())
-        return jsonify({"error": f"Decryption failed: {str(e)}"}), 500
+        return render_template('decrypt.html', error=f"Decryption failed: {e}")
 
 
 if __name__ == '__main__':
